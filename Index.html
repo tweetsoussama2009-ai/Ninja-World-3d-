@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ninja World 3D</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;overflow:hidden;background:#172b23;font-family:Arial}
+canvas{display:block}
+#hud{position:absolute;top:12px;left:12px;color:white;font-weight:bold}
+#health{color:#ff5252;font-size:22px}
+#controls{position:absolute;bottom:20px;width:100%;display:flex;justify-content:space-between;padding:15px}
+.group{display:flex;gap:10px}
+button{background:#222b;color:white;border:2px solid white;border-radius:50%;width:65px;height:65px;font-size:23px;touch-action:none}
+#attack{background:#a52222}
+</style>
+</head>
+<body>
+<div id="hud">🥷 NINJA WORLD<br><span id="health">❤️❤️❤️</span><br>المستوى 1</div>
+<div id="controls">
+<div class="group">
+<button id="left">⬅️</button>
+<button id="right">➡️</button>
+</div>
+<div class="group">
+<button id="jump">⬆️</button>
+<button id="attack">⚔️</button>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x8ac4df);
+scene.fog=new THREE.Fog(0x8ac4df,20,90);
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,150);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+document.body.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x334422,2));
+const sun=new THREE.DirectionalLight(0xffffff,2);
+sun.position.set(10,20,10);scene.add(sun);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:0x47733d}));
+ground.rotation.x=-Math.PI/2;scene.add(ground);
+function box(x,y,z,sx,sy,sz,color){
+let m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),new THREE.MeshStandardMaterial({color}));
+m.position.set(x,y,z);scene.add(m);return m;
+}
+// أشجار
+for(let i=0;i<55;i++){
+let x=(Math.random()-.5)*100,z=(Math.random()-.5)*100;
+box(x,1,z,.5,2,.5,0x654126);
+let t=new THREE.Mesh(new THREE.ConeGeometry(1.8,4,7),new THREE.MeshStandardMaterial({color:0x176b35}));
+t.position.set(x,3,z);scene.add(t);
+}
+// البطل
+const ninja=new THREE.Group();scene.add(ninja);
+const black=new THREE.MeshStandardMaterial({color:0x151923});
+const red=new THREE.MeshStandardMaterial({color:0xa51e27});
+function part(g,x,y,z,sx,sy,sz,mat){
+let m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);
+m.position.set(x,y,z);g.add(m);return m;
+}
+part(ninja,0,1.1,0,.65,.8,.4,black);
+part(ninja,0,1.85,0,.52,.5,.5,black);
+part(ninja,0,1.8,-.27,.4,.12,.08,red);
+part(ninja,-.36,1.1,0,.2,.8,.25,black);
+part(ninja,.36,1.1,0,.2,.8,.25,black);
+part(ninja,-.18,.35,0,.23,.7,.25,black);
+part(ninja,.18,.35,0,.23,.7,.25,black);
+const enemy= new THREE.Group();scene.add(enemy);
+part(enemy,0,1,0,.7,1.5,.6,red);
+part(enemy,0,1.9,0,.6,.5,.5,black);
+enemy.position.set(3,0,-5);
+let keys={},vy=0,health=3;
+function bind(id,key){
+let b=document.getElementById(id);
+b.onpointerdown=e=>{e.preventDefault();keys[key]=true};
+b.onpointerup=b.onpointerleave=()=>keys[key]=false;
+}
+bind('left','left');bind('right','right');bind('jump','jump');
+document.getElementById('attack').onpointerdown=()=>{
+if(ninja.position.distanceTo(enemy.position)<4){
+enemy.position.set((Math.random()-.5)*15,0,-(Math.random()*15+5));
+}
+};
+function animate(){
+requestAnimationFrame(animate);
+if(keys.left)ninja.position.x-=.09;
+if(keys.right)ninja.position.x+=.09;
+if(keys.jump&&ninja.position.y===0)vy=.19;
+vy-=.009;ninja.position.y+=vy;
+if(ninja.position.y<0){ninja.position.y=0;vy=0}
+ninja.position.x=Math.max(-45,Math.min(45,ninja.position.x));
+camera.position.set(ninja.position.x,5,ninja.position.z+9);
+camera.lookAt(ninja.position.x,1,ninja.position.z-3);
+enemy.rotation.y+=.01;
+renderer.render(scene,camera);
+}
+animate();
+onresize=()=>{
+camera.aspect=innerWidth/innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(innerWidth,innerHeight);
+};
+</script>
+</body>
+                                                             </html>
+                                                            
